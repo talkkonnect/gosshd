@@ -42,9 +42,9 @@ func SSHDaemon() {
 	}
 
 	// You can generate a keypair with 'ssh-keygen -t rsa'
-	privateBytes, err := ioutil.ReadFile("id_rsa")
+	privateBytes, err := ioutil.ReadFile("/root/.ssh/id_rsa")
 	if err != nil {
-		log.Fatal("Failed to load private key (./id_rsa)")
+		log.Fatal("Failed to load private key (/root/.ssh/id_rsa)")
 	}
 
 	private, err := ssh.ParsePrivateKey(privateBytes)
