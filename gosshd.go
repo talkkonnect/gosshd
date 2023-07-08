@@ -20,7 +20,7 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-func sshDaemon() {
+func SSHDaemon() {
 
 	// In the latest version of crypto/ssh (after Go 1.3), the SSH server type has been removed
 	// in favour of an SSH connection type. A ssh.ServerConn is created by passing an existing
