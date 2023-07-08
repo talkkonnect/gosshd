@@ -1,5 +1,5 @@
-#code reference https://github.com/Scalingo/go-ssh-examples
-#BSD 2-Clause License
+//code reference https://github.com/Scalingo/go-ssh-examples
+//BSD 2-Clause License
 
 package gosshd
 
