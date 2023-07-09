@@ -49,7 +49,7 @@ func SSHDaemon(username string, password string, idrsafile string, listenOn stri
 		log.Printf("Failed to listen on %v (%s)", listenOn, err)
 	}
 
-	log.Printf("Listening on %v\n", listenOn)
+	log.Printf("talkkonnect remote ssh console service Listening on %v for connections.\n", listenOn)
 	for {
 		tcpConn, err := listener.Accept()
 		if err != nil {
