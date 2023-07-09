@@ -19,12 +19,7 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-var username string = "foo"
-var password string = "bas"
-var idrsafile string = "/root/.ssh/id_rsa"
-var listenOn string = "0.0.0.0:2200"
-
-func SSHDaemon() {
+func SSHDaemon(username string, password string, idrsafile string, listenOn string) {
 
 	config := &ssh.ServerConfig{
 		PasswordCallback: func(c ssh.ConnMetadata, pass []byte) (*ssh.Permissions, error) {
@@ -51,10 +46,10 @@ func SSHDaemon() {
 
 	listener, err := net.Listen("tcp", listenOn)
 	if err != nil {
-		log.Printf("Failed to listen on %v (%s)", listenOn,err)
+		log.Printf("Failed to listen on %v (%s)", listenOn, err)
 	}
 
-	log.Print("Listening on %v", listenOn)
+	log.Printf("Listening on %v\n", listenOn)
 	for {
 		tcpConn, err := listener.Accept()
 		if err != nil {
@@ -67,8 +62,8 @@ func SSHDaemon() {
 			continue
 		}
 
-		log.Printf("New SSH connection from %s (%s)", sshConn.RemoteAddr(), sshConn.ClientVersion())
-		log.Println("Press Ctrl A-D to exit session")
+		log.Printf("New SSH connection to talkkonnect console from %s (%s)", sshConn.RemoteAddr(), sshConn.ClientVersion())
+		log.Println("Press Ctrl A-D to exit talkkonnect console session")
 		go ssh.DiscardRequests(reqs)
 		go handleChannels(chans)
 	}
@@ -92,20 +87,20 @@ func handleChannel(newChannel ssh.NewChannel) {
 		return
 	}
 
-	bash := exec.Command("/usr/bin/screen","-xS","tk")
+	tkConsole := exec.Command("/usr/bin/screen", "-xS", "tk")
 
 	close := func() {
 		connection.Close()
-		_, err := bash.Process.Wait()
+		_, err := tkConsole.Process.Wait()
 		if err != nil {
-			log.Printf("Failed to exit bash (%s)", err)
+			log.Printf("Failed to exit talkkonnect console (%s)", err)
 		}
-		log.Printf("Session closed")
+		log.Printf("talkkonnect console Session closed")
 	}
 
-	bashf, err := pty.Start(bash)
+	bashf, err := pty.Start(tkConsole)
 	if err != nil {
-		log.Printf("Could not start pty (%s)", err)
+		log.Printf("Could not start pty (%s) for talkkonnect console\n", err)
 		close()
 		return
 	}
@@ -124,8 +119,6 @@ func handleChannel(newChannel ssh.NewChannel) {
 		for req := range requests {
 			switch req.Type {
 			case "shell":
-				// We only accept the default shell
-				// (i.e. no command in the Payload)
 				if len(req.Payload) == 0 {
 					req.Reply(true, nil)
 				}
@@ -133,8 +126,6 @@ func handleChannel(newChannel ssh.NewChannel) {
 				termLen := req.Payload[3]
 				w, h := parseDims(req.Payload[termLen+4:])
 				SetWinsize(bashf.Fd(), w, h)
-				// Responding true (OK) here will let the client
-				// know we have a pty ready for input
 				req.Reply(true, nil)
 			case "window-change":
 				w, h := parseDims(req.Payload)
@@ -161,5 +152,3 @@ func SetWinsize(fd uintptr, w, h uint32) {
 	ws := &Winsize{Width: uint16(w), Height: uint16(h)}
 	syscall.Syscall(syscall.SYS_IOCTL, fd, uintptr(syscall.TIOCSWINSZ), uintptr(unsafe.Pointer(ws)))
 }
-
-
