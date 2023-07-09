@@ -10,7 +10,6 @@ import (
 	"io/ioutil"
 	"log"
 	"net"
-	"os/signal"
 	"os/exec"
 	"sync"
 	"syscall"
@@ -76,6 +75,7 @@ func SSHDaemon() {
 		}
 
 		log.Printf("New SSH connection from %s (%s)", sshConn.RemoteAddr(), sshConn.ClientVersion())
+		log.Println("Press Ctrl A-D to exit session")
 		// Discard all global out-of-band Requests
 		go ssh.DiscardRequests(reqs)
 		// Accept all channels
@@ -122,7 +122,6 @@ func handleChannel(newChannel ssh.NewChannel) {
 	}
 
 	// Allocate a terminal for this channel
-	log.Print("Creating pty...")
 	bashf, err := pty.Start(bash)
 	if err != nil {
 		log.Printf("Could not start pty (%s)", err)
@@ -133,7 +132,6 @@ func handleChannel(newChannel ssh.NewChannel) {
 	//pipe session to bash and visa-versa
 	var once sync.Once
 	go func() {
-		signal.Ignore(syscall.SIGWINCH)
 		io.Copy(connection, bashf)
 		once.Do(close)
 	}()
